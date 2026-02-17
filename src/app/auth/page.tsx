@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 function AuthForm() {
   const searchParams = useSearchParams();
   const isSignUp = searchParams.get("mode") === "signup";
+  const code = searchParams.get("code");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +18,23 @@ function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [exchanging, setExchanging] = useState(!!code);
   const router = useRouter();
+
+  // After email verification, Supabase redirects here with ?code=...; exchange it for a session
+  useEffect(() => {
+    if (!code) return;
+    const supabase = createClient();
+    supabase.auth.exchangeCodeForSession(code).then(({ error: exchangeError }) => {
+      setExchanging(false);
+      if (exchangeError) {
+        setError(exchangeError.message);
+        return;
+      }
+      router.replace("/");
+      router.refresh();
+    });
+  }, [code, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,15 +52,14 @@ function AuthForm() {
           password,
           options: {
             data: { full_name: fullName, role },
+            emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/auth` : undefined,
           },
         });
         if (signUpError) {
           // #region agent log
           fetch('http://127.0.0.1:7242/ingest/09fb770f-1565-44fd-8656-e275c319509c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth/page.tsx:signup-error',message:'signup error from Supabase',data:{message:signUpError.message,name:(signUpError as Error).name,status:(signUpError as { status?: number }).status,code:(signUpError as { code?: string }).code},hypothesisId:'H1,H4,H5',timestamp:Date.now()})}).catch(()=>{});
           // #endregion
-          // Surface full error for debugging (Vercel/production)
-          const errDetail = JSON.stringify({ message: signUpError.message, name: (signUpError as Error).name, status: (signUpError as { status?: number }).status, code: (signUpError as { code?: string }).code });
-          setError(signUpError.message + " [" + errDetail + "]");
+          setError(signUpError.message);
           setLoading(false);
           return;
         }
@@ -73,6 +89,14 @@ function AuthForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (exchanging) {
+    return (
+      <div className="w-full max-w-sm space-y-6 text-center">
+        <p className="text-slate-600">Confirming your email…</p>
+      </div>
+    );
   }
 
   if (success) {
