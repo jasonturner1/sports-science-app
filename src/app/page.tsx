@@ -12,13 +12,13 @@ export default function HomePage() {
         </p>
         <div className="flex gap-4">
           <Link
-            href="/login"
+            href="/auth"
             className="rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700"
           >
             Sign in
           </Link>
           <Link
-            href="/signup"
+            href="/auth?mode=signup"
             className="rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 hover:bg-slate-100"
           >
             Sign up
