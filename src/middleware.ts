@@ -7,6 +7,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Skip auth pages so they never hit Supabase in Edge (avoids 404/500 from middleware)
+    "/((?!_next/static|_next/image|favicon.ico|auth|login|signup|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
