@@ -27,7 +27,10 @@ function AuthForm() {
     try {
       const supabase = createClient();
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/09fb770f-1565-44fd-8656-e275c319509c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth/page.tsx:signup-before',message:'signup attempt',data:{role,fullNameLength:fullName.length},hypothesisId:'H2',timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -35,10 +38,18 @@ function AuthForm() {
           },
         });
         if (signUpError) {
-          setError(signUpError.message);
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/09fb770f-1565-44fd-8656-e275c319509c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth/page.tsx:signup-error',message:'signup error from Supabase',data:{message:signUpError.message,name:(signUpError as Error).name,status:(signUpError as { status?: number }).status,code:(signUpError as { code?: string }).code},hypothesisId:'H1,H4,H5',timestamp:Date.now()})}).catch(()=>{});
+          // #endregion
+          // Surface full error for debugging (Vercel/production)
+          const errDetail = JSON.stringify({ message: signUpError.message, name: (signUpError as Error).name, status: (signUpError as { status?: number }).status, code: (signUpError as { code?: string }).code });
+          setError(signUpError.message + " [" + errDetail + "]");
           setLoading(false);
           return;
         }
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/09fb770f-1565-44fd-8656-e275c319509c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth/page.tsx:signup-ok',message:'signup no error',data:{user:!!signUpData?.user},hypothesisId:'H4',timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         setSuccess(true);
         router.refresh();
       } else {
@@ -54,7 +65,10 @@ function AuthForm() {
         router.push("/");
         router.refresh();
       }
-    } catch {
+    } catch (err) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/09fb770f-1565-44fd-8656-e275c319509c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'auth/page.tsx:catch',message:'signup exception',data:{err: String(err), name: err instanceof Error ? err.name : ''},hypothesisId:'H3',timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
