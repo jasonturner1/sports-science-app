@@ -1,3 +1,4 @@
+/// <reference path="../../types/env.d.ts" />
 import { createBrowserClient } from "@supabase/ssr";
 
 export function createClient() {
