@@ -19,7 +19,10 @@ If you don't have one: go to [github.com](https://github.com) and sign up (free)
 ### Step 1.3 — Upload your project files
 1. On the new repo page, click **"uploading an existing file"** (or the **Add file** dropdown → **Upload files**)
 2. Open your project folder: `c:\Users\jturner\OneDrive - De La Salle College\Desktop\Project`
-3. **Important:** Upload the *contents* of the folder (not the folder itself). Select:
+3. **Critical:** Upload the *contents* of the folder so `package.json` and `src` are at the **repo root**.  
+   - Open the Project folder, then select everything *inside* it (don't select the Project folder itself)
+   - Or: select `src`, `supabase`, and all the config files — they must end up at the top level of the repo
+4. Select:
    - `src` folder
    - `supabase` folder
    - `package.json`, `next.config.ts`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.mjs`, `vercel.json`
@@ -87,6 +90,11 @@ If you don't have one: go to [github.com](https://github.com) and sign up (free)
 ---
 
 ## Troubleshooting
+
+**"Couldn't find any pages or app directory"**
+- Your repo structure is wrong. At the repo root you must have: `package.json`, `src/` (with `app/` inside), etc.
+- **Fix A:** Re-upload: open the Project folder, select its contents (src, supabase, package.json, etc.), upload so they're at the repo root — not inside a "Project" subfolder.
+- **Fix B:** If you have a `Project` subfolder: Vercel → Project Settings → General → **Root Directory** → set to `Project` → Save.
 
 **Build fails on Vercel**
 - Check the build logs for the error
